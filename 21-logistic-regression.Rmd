@@ -39,7 +39,7 @@ library(forcats)
 ```{r}
 data(PimaIndiansDiabetes2)
 db <- PimaIndiansDiabetes2
-db <- db %>% na.omit() %>% mutate(diabetes = fct_rev(factor(diabetes))) 
+db <- db %>% na.omit() %>% mutate(diabetes = fct_relevel(factor(diabetes))) 
 ```
 
 
