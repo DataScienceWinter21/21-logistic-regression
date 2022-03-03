@@ -1,0 +1,91 @@
+---
+title: "Logistic Regression"
+author: "Bastola"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      collapse = TRUE, 
+                      comment=NA, 
+                      warning = FALSE,
+                      message = FALSE,
+                      fig.height = 4, fig.width = 6, fig.align='center')
+
+library(tidyverse) 
+library(caret)
+library(class)
+library(patchwork)
+library(tidymodels)
+library(mlbench)     # for PimaIndiansDiabetes2 dataset
+library(janitor)
+library(parsnip)
+library(kknn)
+library(paletteer)
+library(corrr)
+library(scico)
+library(forcats)
+
+```
+
+
+# Your Turn 1
+
+
+```{r}
+data(PimaIndiansDiabetes2)
+db <- PimaIndiansDiabetes2
+db <- db %>% na.omit() %>% mutate(diabetes = fct_relevel(factor(diabetes))) 
+```
+
+
+```{r}
+set.seed(1234)
+db_single <- db %>% select(diabetes, glucose)
+db_split <- initial_split(db_single, prop = 0.80, strata = diabetes)
+
+# Create training data
+db_train <- db_split %>%
+                    training()
+
+# Create testing data
+db_test <- db_split %>%
+                    testing()
+
+fitted_logistic_model <- logistic_reg() %>% # Call the model function
+        # Set the engine/family of the model
+        set_engine("glm") %>%
+        # Set the mode
+        set_mode("classification") %>%
+        # Fit the model
+        fit(diabetes~., data = db_train)
+
+tidy(fitted_logistic_model)
+
+```
+
+
+### a. We are interested in predicting the diabetes status of patients depending on the amount of glucose. Verify that the glucose value of 142.31 gives the probability of having diabetes as 1/2.
+
+*Answer:*
+
+$$log\left(\frac{p}{1-p}\right)  = \beta_0 + \beta_1x$$
+So, $-6.2598 + 0.0439* 142.31 = -0.012391 $. And, $ p = \frac{e^-0.012391}{1 + e^-0.012391} = 0.50$
+
+```{r}
+(p <- round(exp(-6.2598 + 0.0439* 142.31) / (1 + exp(-6.2598 + 0.0439* 142.31)),2))
+```
+
+
+### b. What value of glucose is needed to have a probability threshold of 0.75?
+
+*Answer:*
+
+```{r}
+p <- 0.75
+(x <- (log(p/(1-p)) - (-6.2598))/0.0438513)	
+```
